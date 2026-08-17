@@ -29,6 +29,11 @@ $include = @(
     'LICENSE'
 )
 
+# フォルダ構造を保ったまま同梱するもの
+$includeTree = @(
+    'assets'
+)
+
 $distDir = Join-Path $PSScriptRoot 'dist'
 $stageDir = Join-Path $distDir '_stage'
 
@@ -44,6 +49,16 @@ foreach ($f in $include) {
         $copied += $f
     } else {
         $missing += $f
+    }
+}
+
+foreach ($d in $includeTree) {
+    $src = Join-Path $PSScriptRoot $d
+    if (Test-Path -LiteralPath $src) {
+        Copy-Item -LiteralPath $src -Destination $stageDir -Recurse
+        $copied += "$d\"
+    } else {
+        $missing += "$d\"
     }
 }
 

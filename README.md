@@ -16,13 +16,24 @@ Minecraft for Windows（統合版）のアカウントを、**ゲーム内のサ
 
 ## インストール
 
-1. [Releases](../../releases) から ZIP をダウンロードする
-2. 好きなフォルダに展開する
-3. `setup.cmd` をダブルクリックする
+[Releases](../../releases) から `mc-account-switcher-setup-x.y.z.exe` をダウンロードして実行してください。
 
-セットアップでは、ダウンロードしたファイルのブロック解除、Minecraft 統合版の確認、デスクトップへのショートカット作成を行います。
+インストーラーが次を行います。
 
-以降は、デスクトップのショートカット（または `mc-switcher.cmd`）から起動します。
+- インストール先の選択（既定は `%LOCALAPPDATA%\Programs\MinecraftAccountSwitcher`）
+- **デスクトップにアイコンを作成**（チェックボックスで選択可能）
+- スタートメニューへの登録
+- アンインストーラーの登録（「アプリと機能」から削除できます）
+
+管理者権限は不要です。インストール後はデスクトップのアイコンから起動します。
+
+### ZIP 版
+
+インストールせずに使いたい場合は ZIP をダウンロードし、展開して `setup.cmd` を実行してください。ファイルのブロック解除とショートカット作成のみを行います。
+
+### アンインストール
+
+「設定 → アプリ → インストールされているアプリ」から削除できます。削除時に、登録したアカウント情報も消すかどうかを確認します。
 
 ## 使い方
 
@@ -110,7 +121,11 @@ Minecraft for Windows（統合版）のアカウントを、**ゲーム内のサ
 | `setup.ps1` / `setup.cmd` | 初回セットアップ |
 | `create-shortcut.ps1` | デスクトップにショートカットを作成 |
 | `snapshot.ps1` / `compare.ps1` | 調査用。切り替え前後の差分を採取・比較する |
+| `assets\app.ico` | ショートカット・インストーラー用のアイコン |
+| `tools\make-icon.ps1` | アイコンの生成（開発者向け） |
+| `installer\*.iss` | Inno Setup のインストーラー定義（開発者向け） |
 | `build-package.ps1` | 配布用 ZIP を作成する（開発者向け） |
+| `build-installer.ps1` | インストーラーを作成する（開発者向け） |
 | `profiles\` | 登録したアカウント（`_backup\` に自動バックアップ） |
 | `settings.json` | メールアドレスの表示設定。「メールアドレスを削除」を実行すると作られる |
 
@@ -131,11 +146,16 @@ Minecraft のアップデートで切り替えが効かなくなった場合、�
 
 スクリプトを編集する場合、`.ps1` は **BOM 付き UTF-8** で保存してください。BOM なしだと Windows PowerShell 5.1 が Shift-JIS として読み、日本語コメントで構文エラーになります。
 
-配布用 ZIP は次で作成します。個人情報（`profiles\` / `settings.json` / `snapshots\`）は除外され、出力後に混入がないか検査されます。
+配布物は次で作成します。ZIP には個人情報（`profiles\` / `settings.json` / `snapshots\`）が含まれないよう除外し、出力後に混入がないか検査します。
 
 ```powershell
-.\build-package.ps1
+.\build-package.ps1      # 配布用 ZIP
+.\build-installer.ps1    # インストーラー（要 Inno Setup 6）
 ```
+
+Inno Setup が無い場合は `winget install --id JRSoftware.InnoSetup` で導入できます。
+
+アイコンのデザインを変えたい場合は `tools\make-icon.ps1` を編集して実行すると `assets\app.ico` が再生成されます。
 
 ## ライセンス
 

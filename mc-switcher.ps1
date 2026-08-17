@@ -465,16 +465,7 @@ function Show-RenameDialog {
         if ($name -eq $Profile.name) { $dlg.Close(); return }
 
         try {
-            if (Test-ProfileExists -Name $name) {
-                Show-Warn "「$name」は既に使われています。別の名前にしてください。"
-                return
-            }
-            # 中身の name も合わせて更新する必要があるため、保存し直して旧ファイルを消す
-            $data = Get-AccountProfile -Name $Profile.name
-            $data.name = $name
-            $data | ConvertTo-Json -Depth 4 |
-                Set-Content -LiteralPath (Join-Path $PSScriptRoot "profiles\$name.json") -Encoding utf8
-            Remove-AccountProfile -Name $Profile.name
+            Rename-AccountProfile -OldName $Profile.name -NewName $name
             $result.Name = $name
             $dlg.Close()
         } catch {

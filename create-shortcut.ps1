@@ -21,8 +21,10 @@ if (-not (Test-Path -LiteralPath $guiScript)) {
     throw "mc-switcher.ps1 が見つかりません: $guiScript"
 }
 
-# Minecraft 本体のアイコンを探す。見つからなければ PowerShell のアイコンで代用する
+# 専用アイコンを優先し、無ければ Minecraft 本体のアイコンで代用する
 $iconCandidates = @(
+    (Join-Path $PSScriptRoot 'assets\app.ico')
+    (Join-Path $PSScriptRoot 'app.ico')
     'C:\XboxGames\Minecraft for Windows\Content\Minecraft.Windows.exe'
     "$env:ProgramFiles\WindowsApps\Microsoft.MinecraftUWP_8wekyb3d8bbwe\Minecraft.Windows.exe"
 )

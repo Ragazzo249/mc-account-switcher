@@ -7,11 +7,30 @@
 #
 # CLI (mc-profile.ps1) と GUI (mc-switcher.ps1) の両方から dot-source して使う。
 
+# データの保存先を決める。
+# ZIP を展開して使う場合はスクリプトと同じフォルダに置くが、
+# インストーラーで Program Files 配下に入れた場合は書き込めないので AppData へ逃がす
+function Get-DataRoot {
+    $probe = Join-Path $PSScriptRoot ".write-test-$PID"
+    try {
+        [System.IO.File]::WriteAllText($probe, '')
+        Remove-Item -LiteralPath $probe -Force -ErrorAction SilentlyContinue
+        return $PSScriptRoot
+    } catch {
+        $alt = Join-Path $env:APPDATA 'MinecraftAccountSwitcher'
+        if (-not (Test-Path -LiteralPath $alt)) {
+            New-Item -ItemType Directory -Path $alt -Force | Out-Null
+        }
+        return $alt
+    }
+}
+
 $script:XboxKey = 'HKCU:\SOFTWARE\Microsoft\XboxLive'
 $script:BedrockRoot = "$env:APPDATA\Minecraft Bedrock"
-$script:ProfileDir = Join-Path $PSScriptRoot 'profiles'
+$script:DataRoot = Get-DataRoot
+$script:ProfileDir = Join-Path $script:DataRoot 'profiles'
 $script:BackupDir = Join-Path $script:ProfileDir '_backup'
-$script:SettingsPath = Join-Path $PSScriptRoot 'settings.json'
+$script:SettingsPath = Join-Path $script:DataRoot 'settings.json'
 
 function Initialize-Storage {
     foreach ($d in @($script:ProfileDir, $script:BackupDir)) {
@@ -185,6 +204,28 @@ function Save-AccountProfile {
     }
     $profile | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $path -Encoding utf8
     return $profile
+}
+
+function Rename-AccountProfile {
+    param(
+        [Parameter(Mandatory = $true)][string]$OldName,
+        [Parameter(Mandatory = $true)][string]$NewName
+    )
+    $oldPath = Get-ProfilePath $OldName
+    $newPath = Get-ProfilePath $NewName
+
+    if (-not (Test-Path -LiteralPath $oldPath)) {
+        throw "プロファイル '$OldName' が見つかりません。"
+    }
+    if (Test-Path -LiteralPath $newPath) {
+        throw "「$NewName」は既に使われています。別の名前にしてください。"
+    }
+
+    # ファイル名と中身の name を揃える必要があるため、保存し直して旧ファイルを消す
+    $data = Get-Content -LiteralPath $oldPath -Raw -Encoding utf8 | ConvertFrom-Json
+    $data.name = $NewName
+    $data | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $newPath -Encoding utf8
+    Remove-Item -LiteralPath $oldPath -Force
 }
 
 function Remove-AccountProfile {
